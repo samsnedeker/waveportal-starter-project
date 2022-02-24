@@ -8,7 +8,7 @@ export const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
   const [allWaves, setAllWaves] = useState([]);
 
-  const contractAddress = "0x3E4cb1d398f9E38C6b1d3fD4463014e07fce511e";
+  const contractAddress = "0xAD1deF681fac37b5148a52C2437F63f93CB0b63e";
   const contractABI = abi.abi;
   const getAllWaves = async() => {
     try {
@@ -125,8 +125,14 @@ export const App = () => {
   class Waves extends React.Component {
     constructor(props) {
       super(props);
-      this.state = {allWaves: allWaves}
+      this.state = {allWaves: []}
     };
+
+    updateWaves = () => {
+      this.setState({
+        allWaves: allWaves
+      })
+    }
 
     render() {
       return (
@@ -135,7 +141,7 @@ export const App = () => {
           Your Previous Waves
         </div>
     
-        {allWaves.map((wave, index) => {
+        {this.state.allWaves.map((wave, index) => {
           return (
             <>
             <div key={index} style={{ backgroundColor: "Lavender", marginTop: "5px", marginBottom: "5px", padding: "8px"}}>
