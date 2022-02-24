@@ -1,6 +1,7 @@
 import { recoverAddress } from "@ethersproject/transactions";
 import { ethers, providers } from "ethers";
 import React, { useEffect, useState } from "react";
+import { scryRenderedComponentsWithType } from "react-dom/test-utils";
 import './App.css';
 import abi from "./utils/WavePortal.json";
 
@@ -20,6 +21,7 @@ export const App = () => {
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
   
         const waves = await wavePortalContract.getAllWaves();
+        console.log(waves);
 
         let wavesCleaned = [];
         waves.forEach(wave => {
@@ -31,6 +33,7 @@ export const App = () => {
         });
 
         setAllWaves(wavesCleaned);
+        console.log("all waves1", wavesCleaned);
       } else {
         console.log("Ethereum object does not exist!");
       }
@@ -38,6 +41,8 @@ export const App = () => {
       console.log(error);
     }
   }
+
+  console.log("all waves2: ", allWaves);
 
   const checkIfWalletIsConnected = async () => {
 
@@ -103,7 +108,7 @@ export const App = () => {
         console.log("Retrieved total wave count...", count.toNumber());
 
         //execute the actual wave on the smart contract
-        const waveTxn = await wavePortalContract.wave("this is a message");
+        const waveTxn = await wavePortalContract.wave("hey", { gasLimit: 300000 });
         console.log("Mining...", waveTxn.hash);
 
         await waveTxn.wait();
@@ -128,12 +133,6 @@ export const App = () => {
       this.state = {allWaves: []}
     };
 
-    updateWaves = () => {
-      this.setState({
-        allWaves: allWaves
-      })
-    }
-
     render() {
       return (
         <div className="wavesContainer" style={{ backgroundColor: "gainsboro", padding:"8px", marginBottom: "20px" }}>
@@ -141,7 +140,7 @@ export const App = () => {
           Your Previous Waves
         </div>
     
-        {this.state.allWaves.map((wave, index) => {
+        {allWaves.map((wave, index) => {
           return (
             <>
             <div key={index} style={{ backgroundColor: "Lavender", marginTop: "5px", marginBottom: "5px", padding: "8px"}}>
