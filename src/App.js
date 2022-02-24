@@ -11,38 +11,65 @@ export const App = () => {
 
   const contractAddress = "0xAD1deF681fac37b5148a52C2437F63f93CB0b63e";
   const contractABI = abi.abi;
-  const getAllWaves = async() => {
+  const getAllWaves = async () => {
+    const { ethereum } = window;
+  
     try {
-      const { ethereum } = window;
-
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
-  
         const waves = await wavePortalContract.getAllWaves();
-        console.log(waves);
-
-        let wavesCleaned = [];
-        waves.forEach(wave => {
-          wavesCleaned.push({
+  
+        const wavesCleaned = waves.map(wave => {
+          return {
             address: wave.waver,
             timestamp: new Date(wave.timestamp * 1000),
-            message: wave.message
-          });
+            message: wave.message,
+          };
         });
-
+  
         setAllWaves(wavesCleaned);
-        console.log("all waves1", wavesCleaned);
       } else {
-        console.log("Ethereum object does not exist!");
+        console.log("Ethereum object doesn't exist!");
       }
     } catch (error) {
       console.log(error);
     }
-  }
-
-  console.log("all waves2: ", allWaves);
+  };
+  
+  /**
+   * Listen in for emitter events!
+   */
+  useEffect(() => {
+    let wavePortalContract;
+  
+    const onNewWave = (from, timestamp, message) => {
+      console.log("NewWave", from, timestamp, message);
+      setAllWaves(prevState => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+  
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+  
+      wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+      wavePortalContract.on("NewWave", onNewWave);
+    }
+  
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewWave", onNewWave);
+      }
+    };
+  }, []);
 
   const checkIfWalletIsConnected = async () => {
 
@@ -135,15 +162,15 @@ export const App = () => {
 
     render() {
       return (
-        <div className="wavesContainer" style={{ backgroundColor: "gainsboro", padding:"8px", marginBottom: "20px" }}>
-        <div className="allWaves" style={{ backgroundColor: "gainsboro", maginTop: "16px", marginBottom: "5px", padding: "8px" }}>
+        <div className="wavesContainer" style={{ backgroundColor: "#EFEFEF", padding:"8px", marginBottom: "20px", borderRadius: "5px" }}>
+        <div className="allWaves" style={{ backgroundColor: "Lavender", maginTop: "16px", marginBottom: "5px", padding: "8px" }}>
           Your Previous Waves
         </div>
     
         {allWaves.map((wave, index) => {
           return (
             <>
-            <div key={index} style={{ backgroundColor: "Lavender", marginTop: "5px", marginBottom: "5px", padding: "8px"}}>
+            <div key={index} style={{ backgroundColor: "Lavender", marginTop: "5px", marginBottom: "5px", padding: "8px", borderRadius: "5px"}}>
               <div>Address: {wave.address}</div>
               <div>TimeL {wave.timestamp.toString()}</div>
               <div>Message: {wave.message}</div>
@@ -182,22 +209,6 @@ export const App = () => {
             Connect Wallet
           </button>
         )}
-        {/* <div className="wavesContainer" style={{ backgroundColor: "gainsboro", padding:"8px", marginBottom: "20px" }}>
-          <div className="allWaves" style={{ backgroundColor: "gainsboro", maginTop: "16px", marginBottom: "5px", padding: "8px" }}>
-            Your Previous Waves
-          </div>
-          {allWaves.map((wave, index) => {
-            return (
-              <>
-              <div key={index} style={{ backgroundColor: "Lavender", marginTop: "5px", marginBottom: "5px", padding: "8px"}}>
-                <div>Address: {wave.address}</div>
-                <div>TimeL {wave.timestamp.toString()}</div>
-                <div>Message: {wave.message}</div>
-              </div>
-              </>
-            )
-          })}
-        </div> */}
         <Waves></Waves>
       </div>
     </div>
